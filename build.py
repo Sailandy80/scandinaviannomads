@@ -143,13 +143,14 @@ def page(path, title, desc, body, active="", og_image=None, kind="website", over
 <meta property="og:url" content="{canonical}">
 <meta property="og:image" content="{og}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#1D3445">
+<meta name="theme-color" content="#0B3D59">
 <meta name="format-detection" content="telephone=no">
-<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://images.unsplash.com">
-<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/style.css?v={ASSET_V}">
 <link rel="alternate" type="application/rss+xml" title="{esc(SITE['name'])}" href="/feed.xml">
 </head>
@@ -157,7 +158,7 @@ def page(path, title, desc, body, active="", og_image=None, kind="website", over
 <a class="skip" href="#main">Skip to content</a>
 <header class="site-header">
   <div class="wrap header-inner">
-    <a class="wordmark" href="/" aria-label="Scandinavian Nomads, home">Scandinavian<br>Nomads</a>
+    <a class="brand" href="/" aria-label="Scandinavian Nomads, home"><img src="/assets/emblem.png" alt="" width="40" height="40"><span class="wordmark">Scandinavian<br>Nomads</span></a>
     <button class="menu-btn" aria-expanded="false" aria-controls="nav">Menu</button>
     <nav id="nav" class="nav" aria-label="Main">{nav}<a class="nav-cta" href="#newsletter">Subscribe</a></nav>
   </div>
@@ -169,7 +170,7 @@ def page(path, title, desc, body, active="", og_image=None, kind="website", over
 <footer class="site-footer">
   <div class="wrap footer-grid">
     <div>
-      <p class="wordmark">Scandinavian<br>Nomads</p>
+      <img class="footer-logo" src="/assets/logo-full.jpg" alt="Scandinavian Nomads logo" width="188" height="244" loading="lazy">
       <p class="footer-note">Luxury travel without the luxury price tag. Written in Oslo by a Norwegian who has visited more than 90 countries.</p>
     </div>
     <nav aria-label="Footer">{nav}<a href="/contact/">Contact</a></nav>
