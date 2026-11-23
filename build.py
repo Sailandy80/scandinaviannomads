@@ -144,6 +144,7 @@ def page(path, title, desc, body, active="", og_image=None, kind="website", over
 <meta property="og:image" content="{og}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#1D3445">
+<meta name="format-detection" content="telephone=no">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
