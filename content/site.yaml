@@ -1,0 +1,29 @@
+name: Scandinavian Nomads
+url: https://scandinaviannomads.com
+tagline: Luxury travel, smarter budgets
+description: Budget-luxury travel guides, tips and weekly travel news from a Norwegian traveller who has visited 90+ countries.
+email: connect@scandinaviannomads.com
+year: 2026
+
+toolkit:
+  - category: Hotels & Stays
+    intro: Boutique hotels, guesthouses and the occasional five-star splurge, compared across platforms so you get the best rate.
+    tools: []
+  - category: Flights & Points
+    intro: Flight search tools and loyalty programmes that help you fly better for less, including business class on points.
+    tools: []
+  - category: Tours & Activities
+    intro: Small-group tours, skip-the-line tickets and experiences worth paying for, with free cancellation where possible.
+    tools: []
+  - category: Transfers & Car Hire
+    intro: Arrive calmly. Pre-booked transfers and car rental compared so there are no surprises at the desk.
+    tools: []
+  - category: Travel Insurance
+    intro: The one thing you should never skip. Cover for health, cancellation and lost luggage.
+    tools: []
+  - category: eSIM & Connectivity
+    intro: Data from the moment you land, without roaming shocks.
+    tools: []
+  - category: Gear
+    intro: Carry-on luggage and travel gear that lasts, chosen for quality per krone.
+    tools: []
