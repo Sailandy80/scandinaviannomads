@@ -1,4 +1,8 @@
 ---
+image:
+  id: "photo-1787909239840-d94e9e71c93c"
+  credit: "Sergio Franklin"
+  alt: "Airplane windows with blue sky seen from a dark cabin"
 title: "Business class on points: a beginner's guide for Scandinavians"
 category: Flights & Points
 summary: How to start collecting points in Norway, Sweden and Denmark and turn them into a lie-flat seat.

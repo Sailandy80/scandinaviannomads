@@ -1,4 +1,8 @@
 ---
+image:
+  id: "photo-1790419683322-b08a7050c424"
+  credit: "Marie Dehayes"
+  alt: "A boutique hotel bedroom with a stone wall and white linen"
 title: How to book boutique hotels for less
 category: Hotels
 summary: Eight practical ways to get design-hotel style at mid-range prices.

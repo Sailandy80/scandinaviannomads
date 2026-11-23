@@ -1,4 +1,8 @@
 ---
+image:
+  id: "photo-1584300789093-877b1718f9dd"
+  credit: "Marc Thunis"
+  alt: "Red fishermen's cabins below steep mountains in Lofoten"
 title: Lofoten
 country: Norway
 region: Scandinavia

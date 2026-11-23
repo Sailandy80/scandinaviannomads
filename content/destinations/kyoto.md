@@ -1,4 +1,8 @@
 ---
+image:
+  id: "photo-1624253321171-1be53e12f5f4"
+  credit: "Roméo A."
+  alt: "A pagoda above a narrow street in Kyoto at golden hour"
 title: Kyoto
 country: Japan
 region: Asia

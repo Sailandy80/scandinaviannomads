@@ -1,4 +1,8 @@
 ---
+image:
+  id: "photo-1670888664952-efff442ec0d2"
+  credit: "American Green Travel"
+  alt: "A blue suitcase on a wooden floor"
 title: "Pack light, travel well: the carry-on capsule"
 category: Gear
 summary: A simple capsule wardrobe that fits in a cabin bag and looks good from a city break to a five-star dinner.

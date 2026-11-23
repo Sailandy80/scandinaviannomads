@@ -1,4 +1,8 @@
 ---
+image:
+  id: "photo-1573485905785-f8f87e7bf82c"
+  credit: "Samuel Reyes"
+  alt: "Palacio de Bellas Artes in Mexico City"
 title: Mexico City
 country: Mexico
 region: Americas

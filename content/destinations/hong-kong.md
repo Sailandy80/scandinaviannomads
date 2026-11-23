@@ -1,4 +1,8 @@
 ---
+image:
+  id: "photo-1576788369575-4ab045b9287e"
+  credit: "Sébastien Goldberg"
+  alt: "Hong Kong skyline above Victoria Harbour"
 title: Hong Kong
 country: China (SAR)
 region: Asia

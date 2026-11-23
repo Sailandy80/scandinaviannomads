@@ -1,4 +1,8 @@
 ---
+image:
+  id: "photo-1663530761401-15eefb544889"
+  credit: "Urban Gyllström"
+  alt: "A chef pouring sauce over a plated dish"
 title: Fine dining at lunch prices
 category: Food & Dining
 summary: Why lunch is the smartest way to eat at great restaurants, and how to find the best deals.

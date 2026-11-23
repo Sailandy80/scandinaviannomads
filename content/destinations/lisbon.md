@@ -1,4 +1,8 @@
 ---
+image:
+  id: "photo-1585208798174-6cedd86e019a"
+  credit: "Aayush Gupta"
+  alt: "A yellow tram on a street of historic buildings in Lisbon"
 title: Lisbon
 country: Portugal
 region: Europe

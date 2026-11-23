@@ -1,4 +1,8 @@
 ---
+image:
+  id: "photo-1626894169601-482d26b23f35"
+  credit: "Peter Burdon"
+  alt: "Cape Town houses below the mountain by the sea"
 title: Cape Town
 country: South Africa
 region: Africa & Middle East

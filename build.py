@@ -89,13 +89,44 @@ def art_svg(slug, art, w=1200, h=760, title=""):
 
 # ---------------------------------------------------------------- layout
 
-NAV = [("Destinations", "/destinations/"), ("Travel News", "/news/"), ("Tips", "/tips/"),
-       ("Toolkit", "/toolkit/"), ("About", "/about/"), ("Contact", "/contact/")]
+# ---------------------------------------------------------------- images
+
+def img_url(item, w=1600, h=None):
+    im = item.get("image") or {}
+    if not im.get("id"):
+        return ""
+    q = f"auto=format&fit=crop&w={w}&q=72" + (f"&h={h}" if h else "")
+    return f"https://images.unsplash.com/{im['id']}?{q}"
 
 
-def page(path, title, desc, body, active="", og_image="/assets/og.png", kind="website"):
-    full_title = f"{title} | {SITE['name']}" if title != SITE["name"] else f"{SITE['name']} | {SITE['tagline']}"
+def picture(item, w=1200, h=None, cls="", eager=False, sizes="100vw"):
+    """Responsive photo, or the generated poster if the item has no photo."""
+    im = item.get("image") or {}
+    if not im.get("id"):
+        return f'<div class="ph {cls}">{art_svg(item["slug"] + cls, item.get("art"), title=item.get("title", ""))}</div>'
+    srcset = ", ".join(f"{img_url(item, ww, int(h * ww / w) if h else None)} {ww}w" for ww in (480, 800, 1200, 1800) if ww <= max(w, 800) * 1.5)
+    load = 'fetchpriority="high"' if eager else 'loading="lazy"'
+    return (f'<img class="ph {cls}" src="{img_url(item, w, h)}" srcset="{srcset}" sizes="{sizes}" '
+            f'alt="{esc(im.get("alt", item.get("title", "")))}" {load} decoding="async">')
+
+
+def credit(item):
+    im = item.get("image") or {}
+    if not im.get("credit"):
+        return ""
+    return f'<p class="credit">Photo: {esc(im["credit"])} on <a href="https://unsplash.com/?utm_source=scandinavian_nomads&utm_medium=referral" rel="noopener">Unsplash</a></p>'
+
+
+# ---------------------------------------------------------------- layout
+
+NAV = [("Destinations", "/destinations/"), ("Travel news", "/news/"), ("Tips", "/tips/"),
+       ("Toolkit", "/toolkit/"), ("About", "/about/")]
+
+
+def page(path, title, desc, body, active="", og_image=None, kind="website", overlay=False):
+    full_title = f"{title} | {SITE['name']}" if title != SITE["name"] else f"{SITE['name']}: {SITE['tagline']}"
     canonical = BASE + path
+    og = og_image or f"{BASE}/assets/og.png"
     nav = "".join(f'<a href="{u}"{" aria-current=\"page\"" if active == n else ""}>{n}</a>' for n, u in NAV)
     doc = f"""<!DOCTYPE html>
 <html lang="en">
@@ -110,43 +141,45 @@ def page(path, title, desc, body, active="", og_image="/assets/og.png", kind="we
 <meta property="og:title" content="{esc(title)}">
 <meta property="og:description" content="{esc(desc)}">
 <meta property="og:url" content="{canonical}">
-<meta property="og:image" content="{BASE}{og_image}">
+<meta property="og:image" content="{og}">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#1D3445">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://images.unsplash.com">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,700;0,800;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/style.css?v={ASSET_V}">
-<link rel="alternate" type="application/rss+xml" title="{esc(SITE['name'])} – Travel News" href="/feed.xml">
+<link rel="alternate" type="application/rss+xml" title="{esc(SITE['name'])}" href="/feed.xml">
 </head>
-<body>
+<body class="{'has-overlay' if overlay else ''}">
 <a class="skip" href="#main">Skip to content</a>
 <header class="site-header">
   <div class="wrap header-inner">
-    <a class="logo" href="/"><span class="logo-mark" aria-hidden="true">◆</span> Scandinavian Nomads</a>
+    <a class="wordmark" href="/" aria-label="Scandinavian Nomads, home">Scandinavian<br>Nomads</a>
     <button class="menu-btn" aria-expanded="false" aria-controls="nav">Menu</button>
-    <nav id="nav" class="nav" aria-label="Main">{nav}</nav>
+    <nav id="nav" class="nav" aria-label="Main">{nav}<a class="nav-cta" href="#newsletter">Subscribe</a></nav>
   </div>
 </header>
 <main id="main">
 {body}
 </main>
-{newsletter_block() if path not in ("/contact/",) else ""}
+{newsletter_block() if path != "/contact/" else ""}
 <footer class="site-footer">
   <div class="wrap footer-grid">
     <div>
-      <p class="logo">Scandinavian Nomads</p>
-      <p class="muted">Luxury travel, without the luxury price tag. Guides, tips and weekly travel news from a Norwegian traveller who has visited 90+ countries.</p>
+      <p class="wordmark">Scandinavian<br>Nomads</p>
+      <p class="footer-note">Luxury travel without the luxury price tag. Written in Oslo by a Norwegian who has visited more than 90 countries.</p>
     </div>
-    <nav aria-label="Footer">{nav}</nav>
+    <nav aria-label="Footer">{nav}<a href="/contact/">Contact</a></nav>
     <div class="footer-small">
+      <a href="mailto:{SITE['email']}">{SITE['email']}</a>
       <a href="/disclosure/">Affiliate disclosure</a>
       <a href="/privacy/">Privacy</a>
-      <a href="/feed.xml">RSS</a>
-      <a href="mailto:{SITE['email']}">{SITE['email']}</a>
+      <a href="/feed.xml">RSS feed</a>
     </div>
   </div>
-  <div class="wrap copyright">© {SITE['year']} Scandinavian Nomads</div>
+  <div class="wrap copyright"><span>© {SITE['year']} Scandinavian Nomads</span><span>Photos from Unsplash, credited on each page</span></div>
 </footer>
 <script src="/assets/main.js?v={ASSET_V}" defer></script>
 </body>
@@ -159,20 +192,18 @@ def page(path, title, desc, body, active="", og_image="/assets/og.png", kind="we
 
 
 def newsletter_block(inline=False):
-    return f"""<section class="newsletter{' inline' if inline else ''}" id="newsletter">
-  <div class="wrap newsletter-inner">
-    <div>
-      <p class="eyebrow">The good travel letter</p>
-      <h2>Weekly travel news and budget-luxury finds</h2>
-      <p class="muted">One short email a week. No spam, unsubscribe any time.</p>
-    </div>
+    sfx = "-i" if inline else ""
+    return f"""<section class="letter" id="newsletter">
+  <div class="wrap letter-inner">
+    <h2>The good travel letter</h2>
+    <p>One email on Mondays with the week's travel news, a destination and a tip. Free, and easy to leave.</p>
     <form class="subscribe" action="/subscribe.php" method="post">
-      <label class="sr" for="nl-email{'-i' if inline else ''}">Email address</label>
-      <input id="nl-email{'-i' if inline else ''}" type="email" name="email" placeholder="your@email.com" required>
+      <label class="sr" for="nl-email{sfx}">Email address</label>
+      <input id="nl-email{sfx}" type="email" name="email" placeholder="Your email address" autocomplete="email" required>
       <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
-      <button type="submit">Count me in</button>
-      <p class="fineprint">By subscribing you agree to our <a href="/privacy/">privacy policy</a>.</p>
+      <button type="submit">Subscribe</button>
     </form>
+    <p class="fine">We only use your address for the newsletter. <a href="/privacy/">Privacy policy</a></p>
   </div>
 </section>"""
 
@@ -182,43 +213,42 @@ def fmt_date(d):
 
 
 def sponsored_badge(item):
-    return '<span class="badge sponsored">Sponsored</span>' if item.get("sponsored") else ""
+    return '<p class="badge">Sponsored</p>' if item.get("sponsored") else ""
 
 
 # ---------------------------------------------------------------- components
 
-def dest_card(d, big=False):
-    return f"""<a class="card dest-card{' big' if big else ''}" href="/destinations/{d['slug']}/" data-region="{esc(d['region'])}">
-  <div class="card-art">{art_svg(d['slug'], d.get('art'), title=d['title'])}<span class="score" title="Budget luxury score">{d['score']}</span></div>
-  <div class="card-body">
-    <p class="eyebrow">{esc(d['country'])} · {esc(d['region'])}</p>
-    <h3>{esc(d['title'])}</h3>
-    <p>{esc(d['tagline'])}</p>
-  </div>
+def dest_tile(d, size=""):
+    return f"""<a class="tile {size}" href="/destinations/{d['slug']}/" data-region="{esc(d['region'])}">
+  {picture(d, 1200 if size == 'xl' else 800, 1000 if size == 'xl' else 1000, sizes="(min-width: 900px) 50vw, 100vw")}
+  <span class="tile-score" title="Budget luxury score">{d['score']}</span>
+  <span class="tile-text"><span class="tile-place">{esc(d['country'])}</span><span class="tile-name">{esc(d['title'])}</span>{f'<span class="tile-line">{esc(d["tagline"])}</span>' if size == 'xl' else ''}</span>
 </a>"""
 
 
-def tip_card(t):
-    return f"""<a class="card tip-card" href="/tips/{t['slug']}/">
-  <div class="card-body">
-    <p class="eyebrow">{esc(t['category'])}</p>
-    <h3>{esc(t['title'])}</h3>
-    <p>{esc(t['summary'])}</p>
-    <span class="more">Read the guide →</span>
-  </div>
+def tip_slide(t):
+    return f"""<a class="slide" href="/tips/{t['slug']}/">
+  <span class="slide-img">{picture(t, 700, 875, sizes="(min-width: 900px) 25vw, 70vw")}</span>
+  <span class="slide-cat">{esc(t['category'])}</span>
+  <span class="slide-title">{esc(t['title'])}</span>
+</a>"""
+
+
+def tip_row(t):
+    return f"""<a class="row" href="/tips/{t['slug']}/">
+  <span class="row-img">{picture(t, 480, 360, sizes="160px")}</span>
+  <span class="row-body"><span class="row-cat">{esc(t['category'])}</span><span class="row-title">{esc(t['title'])}</span><span class="row-sum">{esc(t['summary'])}</span></span>
 </a>"""
 
 
 def news_items_html(items, limit=None):
     out = []
     for it in (items[:limit] if limit else items):
-        src = ""
-        if it.get("url"):
-            src = f'<a class="source" href="{esc(it["url"])}" target="_blank" rel="noopener">Source: {esc(it.get("source", "link"))} ↗</a>'
+        src = f'<a class="source" href="{esc(it["url"])}" target="_blank" rel="noopener">{esc(it.get("source", "Source"))}</a>' if it.get("url") else ""
         out.append(f"""<article class="news-item">
   <h3>{esc(it['headline'])}</h3>
   <p>{esc(it['summary'])}</p>
-  {f'<p class="impact"><strong>What it means for you:</strong> {esc(it["impact"])}</p>' if it.get('impact') else ''}
+  {f'<p class="impact"><strong>For you:</strong> {esc(it["impact"])}</p>' if it.get('impact') else ''}
   {src}
 </article>""")
     return "".join(out)
@@ -238,9 +268,9 @@ def affiliate_box(d):
     if not rows:
         return ""
     return f"""<aside class="book-box">
-  <p class="disclosure-line">{DISCLOSURE_LINE} <a href="/disclosure/">Learn more</a>.</p>
   <h2>Book it the smart way</h2>
   <div class="btn-row">{''.join(rows)}</div>
+  <p class="disclosure-line">{DISCLOSURE_LINE} <a href="/disclosure/">How we earn money</a></p>
 </aside>"""
 
 
@@ -248,10 +278,10 @@ def products_box(t):
     prods = t.get("products") or []
     if not prods:
         return ""
-    lis = "".join(f'<li><a href="{esc(p["url"])}" target="_blank" rel="sponsored nofollow noopener">{esc(p["name"])}</a> – {esc(p.get("reason", ""))}</li>' for p in prods)
+    lis = "".join(f'<li><a href="{esc(p["url"])}" target="_blank" rel="sponsored nofollow noopener">{esc(p["name"])}</a>: {esc(p.get("reason", ""))}</li>' for p in prods)
     return f"""<aside class="book-box">
-  <p class="disclosure-line">{DISCLOSURE_LINE} <a href="/disclosure/">Learn more</a>.</p>
   <h2>What we recommend</h2><ul>{lis}</ul>
+  <p class="disclosure-line">{DISCLOSURE_LINE} <a href="/disclosure/">How we earn money</a></p>
 </aside>"""
 
 
@@ -260,95 +290,85 @@ def inline_hotel_button(d):
     if not L.get("hotel"):
         return ""
     return (f'<p class="inline-cta"><a class="btn small" href="{esc(L["hotel"])}" target="_blank" '
-            f'rel="sponsored nofollow noopener">{esc(L.get("hotel_label") or "Check hotel prices")} →</a> '
-            f'<span class="muted">(affiliate link)</span></p>')
+            f'rel="sponsored nofollow noopener">{esc(L.get("hotel_label") or "Check hotel prices")}</a> '
+            f'<span class="fine">Affiliate link</span></p>')
 
 
 # ---------------------------------------------------------------- pages
 
 def build_home():
     featured = next((d for d in DESTS if d.get("featured")), DESTS[0])
+    lofoten = next((d for d in DESTS if d["slug"] == "lofoten"), DESTS[0])
     real_news = [n for n in NEWS if not n.get("placeholder")]
     if real_news:
         latest = real_news[0]
-        news_html = f"""<p class="muted">Week {latest['week']}, {latest['year']}</p>
-<div class="news-grid">{news_items_html(latest.get('items') or [], 3)}</div>
-<a class="more" href="/news/{latest['slug']}/">Read the full roundup →</a>"""
+        news_html = f"""<div class="news-list">{news_items_html(latest.get('items') or [], 4)}</div>
+<a class="text-link" href="/news/{latest['slug']}/">Read the full roundup for week {latest['week']}</a>"""
     else:
-        news_html = '<div class="empty-note"><p><strong>Coming soon.</strong> The first weekly roundup lands on a Monday morning. Subscribe below to get it by email.</p></div>'
+        news_html = '<p class="empty">The first roundup lands on Monday 30 November. Subscribe and it comes straight to your inbox.</p>'
+    others = [d for d in DESTS if d["slug"] != featured["slug"]]
+    mosaic = dest_tile(others[0], "xl") + "".join(dest_tile(d) for d in others[1:5])
     body = f"""
 <section class="hero">
-  <div class="hero-art">{art_svg('lofoten-hero', next((d.get('art') for d in DESTS if d['slug']=='lofoten'), None), 1600, 900, 'Lofoten, Norway')}</div>
+  {picture(lofoten, 2000, 1250, cls="hero-img", eager=True)}
   <div class="wrap hero-inner">
-    <p class="eyebrow light">Budget luxury travel</p>
-    <h1>Luxury travel, without the luxury price tag</h1>
-    <p class="lead">Boutique stays, business class on points and long lunches at great restaurants. Smart guides from a Norwegian who has explored 90+ countries.</p>
-    <div class="btn-row"><a class="btn" href="/destinations/">Explore destinations</a><a class="btn ghost" href="#newsletter">Get the weekly letter</a></div>
+    <h1>Luxury travel, without the luxury price&nbsp;tag</h1>
+    <p class="hero-sub">Boutique stays, business class on points and long lunches at great restaurants. Honest guides from a Norwegian who has travelled to more than 90 countries.</p>
+    <div class="btn-row"><a class="btn light" href="/destinations/">Explore destinations</a><a class="btn outline" href="#newsletter">Get the Monday letter</a></div>
+  </div>
+  <p class="hero-credit">Lofoten, Norway. Photo: {esc((lofoten.get('image') or {}).get('credit', ''))} / Unsplash</p>
+</section>
+
+<section class="intro wrap">
+  <p class="intro-text">The best moments in travel are rarely the most expensive ones. A sea-view cabin in Lofoten, a set lunch in Lisbon, the Star Ferry at dusk. We show you where the luxury is, and how to get it for less.</p>
+</section>
+
+<section class="dotw wrap">
+  <a class="dotw-img" href="/destinations/{featured['slug']}/">{picture(featured, 1400, 1050, sizes="(min-width: 900px) 60vw, 100vw")}</a>
+  <div class="dotw-text">
+    <p class="kicker">Destination of the week</p>
+    <h2>{esc(featured['title'])}</h2>
+    <p class="dotw-tag">{esc(featured['tagline'])}</p>
+    <dl class="mini-facts"><div><dt>Budget luxury score</dt><dd>{featured['score']}</dd></div><div><dt>Best time to go</dt><dd>{esc(featured['best_time'].split(';')[0].split(' for ')[0])}</dd></div></dl>
+    <a class="btn" href="/destinations/{featured['slug']}/">Read the {esc(featured['title'])} guide</a>
   </div>
 </section>
 
-<section class="section">
-  <div class="wrap">
-    <div class="section-head"><h2>This week in travel</h2><a href="/news/">All news →</a></div>
-    {news_html}
-  </div>
+<section class="block wrap">
+  <div class="block-head"><h2>Where to go next</h2><a class="text-link" href="/destinations/">All destinations</a></div>
+  <div class="mosaic">{mosaic}</div>
 </section>
 
-<section class="section alt">
-  <div class="wrap feature">
-    <div>
-      <p class="eyebrow">Destination of the week</p>
-      <h2>{esc(featured['title'])}, {esc(featured['country'])}</h2>
-      <p class="lead">{esc(featured['tagline'])}</p>
-      <p class="muted">Best time to go: {esc(featured['best_time'])}</p>
-      <p><span class="score-inline">Budget luxury score {featured['score']}/10</span></p>
-      <a class="btn" href="/destinations/{featured['slug']}/">Read the guide</a>
-    </div>
-    <a class="feature-art" href="/destinations/{featured['slug']}/" aria-label="{esc(featured['title'])} guide">{art_svg(featured['slug']+'-f', featured.get('art'), 900, 700, featured['title'])}</a>
-  </div>
+<section class="block wrap news-block">
+  <div class="block-head"><h2>This week in travel</h2><a class="text-link" href="/news/">News archive</a></div>
+  {news_html}
 </section>
 
-<section class="section">
-  <div class="wrap">
-    <div class="section-head"><h2>Small changes. Better journeys.</h2><a href="/tips/">All tips →</a></div>
-    <div class="grid three">{''.join(tip_card(t) for t in TIPS[:3])}</div>
-  </div>
+<section class="block tips-block">
+  <div class="wrap block-head"><h2>Small changes, better trips</h2><a class="text-link" href="/tips/">All tips</a></div>
+  <div class="slider" tabindex="0" aria-label="Travel tips">{''.join(tip_slide(t) for t in TIPS)}</div>
 </section>
 
-<section class="section alt">
-  <div class="wrap">
-    <div class="section-head"><h2>Destinations</h2><a href="/destinations/">See all →</a></div>
-    <div class="grid three">{''.join(dest_card(d) for d in DESTS[:6])}</div>
-  </div>
-</section>
-
-<section class="section">
-  <div class="wrap about-teaser">
-    <p class="big-number">90+</p>
-    <div>
-      <h2>Written by someone who has been there</h2>
-      <p>Scandinavian Nomads is written by a Norwegian traveller with more than 25 years in aviation, hotels, restaurants and destination management, and more than 90 countries visited. The goal is simple: to help you travel better, not just cheaper.</p>
-      <a class="more" href="/about/">About Scandinavian Nomads →</a>
-    </div>
-  </div>
+<section class="author wrap">
+  <p class="author-quote">Written by someone who has worked the aircraft cabin, the hotel front desk and the restaurant floor, and knows where the value hides.</p>
+  <p class="author-by">25 years in aviation, hotels, restaurants and destination management. More than 90 countries. <a class="text-link" href="/about/">Read the story</a></p>
 </section>
 """
-    page("/", SITE["name"], SITE["description"], body)
+    page("/", SITE["name"], SITE["description"], body, overlay=True, og_image=img_url(lofoten, 1200, 630))
 
 
 def build_destinations():
     filters = "".join(f'<button class="chip" data-filter="{esc(r)}">{esc(r)}</button>' for r in REGIONS)
     body = f"""
-<section class="page-head"><div class="wrap">
-  <p class="eyebrow">Destination guides</p>
-  <h1>Where to go for luxury on a budget</h1>
-  <p class="lead">Every guide has a budget luxury score: how much luxury experience you get per krone spent.</p>
-</div></section>
-<section class="section tight"><div class="wrap">
-  <div class="chips" role="group" aria-label="Filter by region"><button class="chip active" data-filter="all">All</button>{filters}</div>
-  <div class="grid three" id="dest-grid">{''.join(dest_card(d) for d in DESTS)}</div>
-  <p class="empty-note" id="dest-empty" hidden>No guides for this region yet. They are on the way.</p>
-</div></section>"""
+<section class="page-head wrap">
+  <h1>Destinations</h1>
+  <p class="lead">Every guide has a budget luxury score: how much luxury you get for every krone you spend.</p>
+</section>
+<section class="wrap block tight-top">
+  <div class="chips" role="group" aria-label="Filter by region"><button class="chip active" data-filter="all">All regions</button>{filters}</div>
+  <div class="dest-grid" id="dest-grid">{''.join(dest_tile(d) for d in DESTS)}</div>
+  <p class="empty" id="dest-empty" hidden>No guides for this region yet. New destinations arrive every Wednesday.</p>
+</section>"""
     page("/destinations/", "Destination guides", "Budget-luxury destination guides: where to stay, what to eat, how to save and a 3-day itinerary.", body, "Destinations")
 
     for d in DESTS:
@@ -356,32 +376,35 @@ def build_destinations():
         btn = inline_hotel_button(d)
         if btn:
             html_body = re.sub(r"(<h2>Where to stay</h2>\s*<p>.*?</p>)", lambda m: m.group(1) + btn, html_body, count=1, flags=re.S)
+        more = "".join(dest_tile(x) for x in [x for x in DESTS if x['slug'] != d['slug']][:4])
         body = f"""
-<article class="guide">
+<article>
   <header class="guide-hero">
-    <div class="guide-art">{art_svg(d['slug']+'-h', d.get('art'), 1600, 800, d['title'])}</div>
+    {picture(d, 2000, 1100, cls="hero-img", eager=True)}
     <div class="wrap guide-head">
       {sponsored_badge(d)}
-      <p class="eyebrow light">{esc(d['country'])} · {esc(d['region'])}</p>
+      <p class="guide-place">{esc(d['country'])}, {esc(d['region'])}</p>
       <h1>{esc(d['title'])}</h1>
-      <p class="lead">{esc(d['tagline'])}</p>
+      <p class="hero-sub">{esc(d['tagline'])}</p>
     </div>
   </header>
   <div class="wrap guide-layout">
-    <div class="prose">{html_body}{affiliate_box(d)}</div>
     <aside class="facts">
-      <div class="fact"><span>Budget luxury score</span><strong>{d['score']}/10</strong></div>
-      <div class="fact"><span>Best time to visit</span><p>{esc(d['best_time'])}</p></div>
-      <div class="fact"><span>Updated</span><p>{fmt_date(d['published'])}</p></div>
-      <a class="btn full" href="#newsletter">Get new guides by email</a>
+      <div class="score-big"><span>{d['score']}</span><small>Budget luxury score out of 10</small></div>
+      <dl>
+        <dt>Best time to visit</dt><dd>{esc(d['best_time'])}</dd>
+        <dt>Last updated</dt><dd>{fmt_date(d['published'])}</dd>
+      </dl>
+      {credit(d)}
     </aside>
+    <div class="prose">{html_body}{affiliate_box(d)}</div>
   </div>
 </article>
-<section class="section alt"><div class="wrap">
-  <div class="section-head"><h2>More destinations</h2><a href="/destinations/">All guides →</a></div>
-  <div class="grid three">{''.join(dest_card(x) for x in [x for x in DESTS if x['slug'] != d['slug']][:3])}</div>
-</div></section>"""
-        page(f"/destinations/{d['slug']}/", f"{d['title']} travel guide", f"{d['title']}, {d['country']}: {d['tagline']}", body, "Destinations", kind="article")
+<section class="wrap block">
+  <div class="block-head"><h2>More destinations</h2><a class="text-link" href="/destinations/">All destinations</a></div>
+  <div class="dest-grid">{more}</div>
+</section>"""
+        page(f"/destinations/{d['slug']}/", f"{d['title']} travel guide", f"{d['title']}, {d['country']}: {d['tagline']}", body, "Destinations", kind="article", overlay=True, og_image=img_url(d, 1200, 630) or None)
 
 
 def build_tips():
@@ -389,67 +412,68 @@ def build_tips():
     for cat in TIP_CATEGORIES:
         items = [t for t in TIPS if t["category"] == cat]
         if items:
-            groups += f'<h2 class="group-title">{esc(cat)}</h2><div class="grid three">{"".join(tip_card(t) for t in items)}</div>'
+            groups += f'<section class="tip-group"><h2>{esc(cat)}</h2><div class="rows">{"".join(tip_row(t) for t in items)}</div></section>'
     body = f"""
-<section class="page-head"><div class="wrap">
-  <p class="eyebrow">Tips</p>
-  <h1>Budget-luxury tips</h1>
-  <p class="lead">Practical ways to fly, stay and eat better without paying full price.</p>
-</div></section>
-<section class="section tight"><div class="wrap">{groups}</div></section>"""
+<section class="page-head wrap">
+  <h1>Tips</h1>
+  <p class="lead">Practical ways to fly, stay and eat better without paying full price. A new one every Friday.</p>
+</section>
+<div class="wrap tips-list">{groups}</div>"""
     page("/tips/", "Budget-luxury travel tips", "Practical tips on points, boutique hotels, fine dining, planning and gear for luxury travel on a budget.", body, "Tips")
     for t in TIPS:
         others = [x for x in TIPS if x["slug"] != t["slug"]][:3]
         body = f"""
 <article class="article">
-  <header class="page-head"><div class="wrap narrow">
+  <header class="article-head wrap">
     {sponsored_badge(t)}
-    <p class="eyebrow"><a href="/tips/">Tips</a> · {esc(t['category'])}</p>
+    <p class="kicker"><a href="/tips/">Tips</a>, {esc(t['category'])}</p>
     <h1>{esc(t['title'])}</h1>
     <p class="lead">{esc(t['summary'])}</p>
-    <p class="muted small">Published {fmt_date(t['published'])}</p>
-  </div></header>
-  <div class="wrap narrow prose">{t['html']}{products_box(t)}</div>
+    <p class="fine">Published {fmt_date(t['published'])}</p>
+  </header>
+  <figure class="article-img wrap">{picture(t, 1600, 800, eager=True)}<figcaption>{credit(t)}</figcaption></figure>
+  <div class="wrap prose">{t['html']}{products_box(t)}</div>
 </article>
-<section class="section alt"><div class="wrap">
-  <div class="section-head"><h2>More tips</h2><a href="/tips/">All tips →</a></div>
-  <div class="grid three">{''.join(tip_card(x) for x in others)}</div>
-</div></section>"""
-        page(f"/tips/{t['slug']}/", t["title"], t["summary"], body, "Tips", kind="article")
+<section class="wrap block">
+  <div class="block-head"><h2>More tips</h2><a class="text-link" href="/tips/">All tips</a></div>
+  <div class="rows">{''.join(tip_row(x) for x in others)}</div>
+</section>"""
+        page(f"/tips/{t['slug']}/", t["title"], t["summary"], body, "Tips", kind="article", og_image=img_url(t, 1200, 630) or None)
 
 
 def build_news():
-    cards = []
+    rows = []
     for n in NEWS:
         label = "Coming soon" if n.get("placeholder") else f"Week {n['week']}, {n['year']}"
-        cards.append(f"""<a class="card news-card" href="/news/{n['slug']}/">
-  <div class="card-body"><p class="eyebrow">{label} · {fmt_date(n['published'])}</p><h3>{esc(n['title'])}</h3><p>{esc(n['summary'])}</p><span class="more">Read →</span></div>
+        rows.append(f"""<a class="news-row" href="/news/{n['slug']}/">
+  <span class="news-week">{label}</span>
+  <span class="news-title">{esc(n['title'])}</span>
+  <span class="news-sum">{esc(n['summary'])}</span>
 </a>""")
     body = f"""
-<section class="page-head"><div class="wrap">
-  <p class="eyebrow">Travel news</p>
-  <h1>This week in travel</h1>
-  <p class="lead">A short roundup every Monday: the travel news that matters for budget-luxury travellers, with sources.</p>
-</div></section>
-<section class="section tight"><div class="wrap"><div class="grid two">{''.join(cards)}</div></div></section>"""
-    page("/news/", "Weekly travel news", "Weekly travel news roundup for budget-luxury travellers: routes, hotels, loyalty programmes and deals.", body, "Travel News")
+<section class="page-head wrap">
+  <h1>Travel news</h1>
+  <p class="lead">Every Monday: the travel news that matters if you want luxury on a smart budget. Short, sourced and with what it means for you.</p>
+</section>
+<section class="wrap block tight-top"><div class="news-index">{''.join(rows)}</div></section>"""
+    page("/news/", "Weekly travel news", "Weekly travel news roundup for budget-luxury travellers: routes, hotels, loyalty programmes and deals.", body, "Travel news")
     for n in NEWS:
         label = "Coming soon" if n.get("placeholder") else f"Week {n['week']}, {n['year']}"
         body = f"""
 <article class="article">
-  <header class="page-head"><div class="wrap narrow">
+  <header class="article-head wrap">
     {sponsored_badge(n)}
-    <p class="eyebrow"><a href="/news/">Travel news</a> · {label}</p>
+    <p class="kicker"><a href="/news/">Travel news</a>, {label}</p>
     <h1>{esc(n['title'])}</h1>
     <p class="lead">{esc(n['summary'])}</p>
-    <p class="muted small">Published {fmt_date(n['published'])}</p>
-  </div></header>
-  <div class="wrap narrow">
+    <p class="fine">Published {fmt_date(n['published'])}</p>
+  </header>
+  <div class="wrap">
     <div class="prose">{n['html']}</div>
-    <div class="news-list">{news_items_html(n.get('items') or [])}</div>
+    <div class="news-list single">{news_items_html(n.get('items') or [])}</div>
   </div>
 </article>"""
-        page(f"/news/{n['slug']}/", n["title"], n["summary"], body, "Travel News", kind="article")
+        page(f"/news/{n['slug']}/", n["title"], n["summary"], body, "Travel news", kind="article")
 
 
 def build_toolkit():
@@ -458,30 +482,28 @@ def build_toolkit():
         tools = c.get("tools") or []
         if tools:
             inner = "".join(f"""<div class="tool"><h3>{esc(t['name'])}</h3><p>{esc(t.get('why', ''))}</p>
-<a class="btn small" href="{esc(t['url'])}" target="_blank" rel="sponsored nofollow noopener">Visit {esc(t['name'])} →</a></div>""" for t in tools)
+<a class="btn small" href="{esc(t['url'])}" target="_blank" rel="sponsored nofollow noopener">Visit {esc(t['name'])}</a></div>""" for t in tools)
         else:
             inner = '<p class="empty-note">Our picks are coming soon.</p>'
         blocks.append(f'<section class="toolkit-cat"><h2>{esc(c["category"])}</h2><p class="muted">{esc(c["intro"])}</p><div class="tools">{inner}</div></section>')
     any_tools = any(c.get("tools") for c in SITE["toolkit"])
     disc = f'<p class="disclosure-line">{DISCLOSURE_LINE} <a href="/disclosure/">Learn more</a>.</p>' if any_tools else ""
     body = f"""
-<section class="page-head"><div class="wrap narrow">
-  <p class="eyebrow">Travel toolkit</p>
+<section class="page-head"><div class="wrap">
   <h1>The tools we actually use</h1>
   <p class="lead">Booking sites, apps and gear that help you travel better for less. Tested, compared and updated.</p>
   {disc}
 </div></section>
-<section class="section tight"><div class="wrap narrow">{''.join(blocks)}</div></section>"""
+<section class="section tight"><div class="wrap">{''.join(blocks)}</div></section>"""
     page("/toolkit/", "Travel toolkit", "The booking sites, apps and travel gear Scandinavian Nomads recommends for budget-luxury travel.", body, "Toolkit")
 
 
 def build_static_pages():
     about = """
-<section class="page-head"><div class="wrap narrow">
-  <p class="eyebrow">About</p>
+<section class="page-head"><div class="wrap">
   <h1>Luxury is a way of travelling, not a price</h1>
 </div></section>
-<section class="section tight"><div class="wrap narrow prose">
+<section class="section tight"><div class="wrap prose">
 <p>Scandinavian Nomads started with a simple observation: the best travel moments are rarely the most expensive ones. A sea-view cabin in Lofoten, a long lunch in Lisbon, the Star Ferry at dusk in Hong Kong. With the right timing and a few insider tricks, you can travel in real comfort without paying full luxury prices.</p>
 <p>The site is written by a Norwegian who grew up between mountains and fjords and has since visited more than 90 countries. Over 25 years he has worked as cabin crew, purser and base manager in aviation, as a destination manager opening and running destinations in several countries, as a restaurant manager, and in hospitality at sea. That means the tips here come from both sides of the counter: as a traveller, and as someone who has run the hotels, flights and restaurants you book.</p>
 <h2>The budget-luxury philosophy</h2>
@@ -496,12 +518,11 @@ def build_static_pages():
     page("/about/", "About", "The story and philosophy behind Scandinavian Nomads, a budget-luxury travel site.", about, "About")
 
     contact = f"""
-<section class="page-head"><div class="wrap narrow">
-  <p class="eyebrow">Contact</p>
+<section class="page-head"><div class="wrap">
   <h1>Get in touch</h1>
   <p class="lead">Questions, tips, press or partnership enquiries. We read every message.</p>
 </div></section>
-<section class="section tight"><div class="wrap narrow">
+<section class="section tight"><div class="wrap">
   <form class="contact-form" action="/contact.php" method="post">
     <label>Name<input type="text" name="name" required maxlength="100"></label>
     <label>Email<input type="email" name="email" required maxlength="200"></label>
@@ -516,8 +537,8 @@ def build_static_pages():
     page("/contact/", "Contact", "Contact Scandinavian Nomads for questions, partnerships and press.", contact, "Contact")
 
     disclosure = """
-<section class="page-head"><div class="wrap narrow"><p class="eyebrow">Transparency</p><h1>Affiliate disclosure</h1></div></section>
-<section class="section tight"><div class="wrap narrow prose">
+<section class="page-head"><div class="wrap"><h1>Affiliate disclosure</h1></div></section>
+<section class="section tight"><div class="wrap prose">
 <p>Scandinavian Nomads is free to read. To keep it that way, we may earn money in the following ways:</p>
 <h2>Affiliate links</h2>
 <p>Some links on this site are affiliate links. If you click one and make a booking or purchase, we may earn a small commission from the provider. <strong>It costs you nothing extra</strong>, and sometimes you get the same or a better price than going direct.</p>
@@ -531,8 +552,8 @@ def build_static_pages():
     page("/disclosure/", "Affiliate disclosure", "How Scandinavian Nomads earns money: affiliate links and clearly labelled sponsored content.", disclosure)
 
     privacy = """
-<section class="page-head"><div class="wrap narrow"><p class="eyebrow">Privacy</p><h1>Privacy policy</h1></div></section>
-<section class="section tight"><div class="wrap narrow prose">
+<section class="page-head"><div class="wrap"><h1>Privacy policy</h1></div></section>
+<section class="section tight"><div class="wrap prose">
 <p>This policy explains what personal data Scandinavian Nomads collects and how it is used.</p>
 <h2>Newsletter</h2>
 <p>If you subscribe, we store your email address to send you the newsletter. You can unsubscribe at any time using the link in every email or by contacting us, and we will delete your address.</p>
@@ -548,10 +569,10 @@ def build_static_pages():
     for slug, title, text in [("thanks", "Thank you", "Your message is on its way. We usually reply within a few days."),
                                ("subscribed", "You're in", "Thanks for subscribing to the good travel letter. Look out for the next issue on Monday."),
                                ("oops", "Something went wrong", "We could not send your form. Please try again, or email connect@scandinaviannomads.com.")]:
-        body = f'<section class="page-head center"><div class="wrap narrow"><h1>{title}</h1><p class="lead">{text}</p><a class="btn" href="/">Back to the homepage</a></div></section>'
+        body = f'<section class="page-head center"><div class="wrap"><h1>{title}</h1><p class="lead">{text}</p><a class="btn" href="/">Back to the homepage</a></div></section>'
         page(f"/{slug}/", title, text, body)
 
-    body = '<section class="page-head center"><div class="wrap narrow"><p class="eyebrow">404</p><h1>This page has wandered off</h1><p class="lead">The page you were looking for does not exist.</p><a class="btn" href="/destinations/">Explore destinations</a></div></section>'
+    body = '<section class="page-head center"><div class="wrap"><h1>This page has wandered off</h1><p class="lead">The page you were looking for does not exist.</p><a class="btn" href="/destinations/">Explore destinations</a></div></section>'
     page("/404.html", "Page not found", "Page not found.", body)
 
 
@@ -582,6 +603,7 @@ def main():
         h.update(f.read_bytes())
     ASSET_V = h.hexdigest()[:8]
     # social share image as SVG->PNG fallback is optional; keep an SVG og too
+    # og image
     (DIST / "assets" / "og.svg").write_text(art_svg("og", next((d.get('art') for d in DESTS if d['slug']=='lofoten'), None), 1200, 630, SITE["name"]), encoding="utf-8")
 
     build_home(); build_destinations(); build_tips(); build_news(); build_toolkit(); build_static_pages()

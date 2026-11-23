@@ -1,4 +1,8 @@
 ---
+image:
+  id: "photo-1759038086545-a905cb519ae8"
+  credit: "Neon Wang"
+  alt: "Curved leather booths in a lounge"
 title: Airport lounge access without flying business
 category: Flights & Points
 summary: The main ways to get into airport lounges on an economy ticket, and when they are worth it.

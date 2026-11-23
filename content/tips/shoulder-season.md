@@ -1,4 +1,8 @@
 ---
+image:
+  id: "photo-1599304109143-f34f59eccf31"
+  credit: "Sophie Keen"
+  alt: "A boat on a river between autumn trees and old buildings"
 title: "Shoulder season: the secret to five-star trips for less"
 category: Planning
 summary: When to go to get great weather, fewer crowds and lower prices.
