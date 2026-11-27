@@ -5,7 +5,6 @@ summary: Five checks that separate a genuinely good hotel or flight deal from a 
 published: 2026-11-27
 products: []
 sponsored: false
-draft: true
 ---
 
 Black Friday has become one of the busiest booking days of the year for hotels, airlines and tour operators. Some of the offers are excellent. Many are ordinary prices with a countdown clock. Here is how to tell the difference before you pay.
