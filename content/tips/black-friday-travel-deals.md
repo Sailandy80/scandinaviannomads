@@ -1,4 +1,8 @@
 ---
+image:
+  id: "photo-1757865579170-8d64d9aab467"
+  credit: "Fujiphilm"
+  alt: "Green suitcase with travel stickers in an airport terminal"
 title: "Black Friday travel deals: how to spot a real bargain"
 category: Planning
 summary: Five checks that separate a genuinely good hotel or flight deal from a big red banner.
